@@ -85,7 +85,9 @@ fn handle_connection(mut stream: std::net::TcpStream) {
             && !shibv.is_empty()
             && !pid.is_empty()
         {
-            let result = return_server_values(&jsess, &uni, &shibn, &shibv, &pid);
+            let mut result = return_server_values(&jsess, &uni, &shibn, &shibv, &pid);
+            result = result.replace("\n", "");
+            println!("{}", result.chars().last().unwrap());
             let value_length = result.len();
             let response = format!(
                 "\
