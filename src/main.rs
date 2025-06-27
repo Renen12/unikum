@@ -1,3 +1,5 @@
+pub mod server;
+
 use std::{
     env::args,
     fs,
@@ -5,6 +7,28 @@ use std::{
 };
 
 use serde_json::Value;
+pub fn return_server_values(
+    jsessionid: &String,
+    unihzsessid: &String,
+    shibsession_name: &String,
+    shibsession_value: &String,
+    pid: &String,
+) -> String {
+    let out = Command::new("pwsh")
+        .args([
+            "return_json.ps1",
+            &jsessionid,
+            &unihzsessid,
+            &shibsession_name,
+            &shibsession_value,
+            &pid,
+        ])
+        .output()
+        .unwrap();
+    let out_readable = String::from_utf8(out.stdout).unwrap();
+    out_readable
+}
+use crate::server::server;
 static HELP_MESSAGE: &'static str = "
 --help — display this message\n 
 \t--shibsession_name=[your shibsession cookie's name]\n
@@ -14,10 +38,12 @@ static HELP_MESSAGE: &'static str = "
   \t--pid=[the pid of the blog page, e.g 11349120275]\n
   \t --html — output these into respective HTML files\n
   \t --dry — show raw data
+  \t --server — run a server on port 7951 that returns data from Unikum
   Instructions on how to obtain these is in the README.md file. This must be run in a directory with the proper return_json.ps1 file.
   \n Such a file is provided in the repository.";
 #[allow(unused)]
 fn main() {
+    let mut is_server = false;
     let args: Vec<_> = args().collect();
     let mut jsessionid = String::new();
     let mut dry = false;
@@ -53,6 +79,10 @@ fn main() {
         if arg == "--help" {
             print!("{}", HELP_MESSAGE);
             exit(0);
+        }
+        if arg == "--server" {
+            is_server = true;
+            server();
         }
     }
     if !jsessionid.is_empty()
@@ -105,6 +135,7 @@ fn main() {
                 item += 1;
             }
         }
+    } else if is_server {
     } else {
         eprintln!("Not enough arguments");
         exit(1);
