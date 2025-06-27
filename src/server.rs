@@ -85,8 +85,11 @@ fn handle_connection(mut stream: std::net::TcpStream) {
             && !shibv.is_empty()
             && !pid.is_empty()
         {
+            let status_line = "HTTP/1.1 200 OK";
             let result = return_server_values(&jsess, &uni, &shibn, &shibv, &pid);
-            let response = format!("{}", result);
+            let value_length = result.len();
+            let response =
+                format!("{status_line}\r\nContent-Length: {value_length}\r\n\r\n{result}");
             stream.write_all(response.as_bytes());
         }
     }
