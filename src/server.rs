@@ -85,11 +85,19 @@ fn handle_connection(mut stream: std::net::TcpStream) {
             && !shibv.is_empty()
             && !pid.is_empty()
         {
-            let status_line = "HTTP/1.1 200 OK";
             let result = return_server_values(&jsess, &uni, &shibn, &shibv, &pid);
             let value_length = result.len();
-            let response =
-                format!("{status_line}\r\nContent-Length: {value_length}\r\n\r\n{result}");
+            let response = format!(
+                "\
+                HTTP/1.1 200 OK\r\n\
+                Content-Type: text/html; charset=UTF-8\r\n\
+                Content-Length: {value_length}\r\n\
+                Server: Custom Unikum API server\r\n\
+                Access-Control-Allow-Origin: *\r\n\
+                \r\n
+                {result}
+                "
+            );
             stream.write_all(response.as_bytes());
         }
     }
