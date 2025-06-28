@@ -16,18 +16,23 @@ pub fn return_server_values(
 ) -> String {
     let out = Command::new("pwsh")
         .args([
-            "return_json.ps1",
-            &jsessionid,
-            &unihzsessid,
-            &shibsession_name,
-            &shibsession_value,
-            &pid,
+            "-NoProfile",
+            "-Command",
+            &format!(
+                "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ./return_json.ps1 '{}' '{}' '{}' '{}' '{}'",
+                jsessionid,
+                unihzsessid,
+                shibsession_name,
+                shibsession_value,
+                pid
+            ),
         ])
         .output()
-        .unwrap();
-    let out_readable = String::from_utf8(out.stdout).unwrap();
+        .map_err(|e| format!("Failed to run PowerShell: {}", e)).unwrap();
+    let out_readable = String::from_utf8_lossy(&out.stdout).to_string();
     out_readable
 }
+
 use crate::server::server;
 static HELP_MESSAGE: &'static str = "
 --help — display this message\n 

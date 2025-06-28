@@ -1,10 +1,9 @@
+use crate::{return_server_values, server::threadpool::ThreadPool};
 use std::{
     io::{BufRead, BufReader, Write},
     net::TcpListener,
     process::exit,
 };
-
-use crate::{return_server_values, server::threadpool::ThreadPool};
 mod threadpool;
 pub fn server() {
     let listener = match TcpListener::bind("127.0.0.1:7951") {
@@ -88,17 +87,37 @@ fn handle_connection(mut stream: std::net::TcpStream) {
             let mut result = return_server_values(&jsess, &uni, &shibn, &shibv, &pid);
             result = result.replace("\n", "");
             let value_length = result.len();
+            let json_value: serde_json::Value = match serde_json::from_str(&result) {
+                Ok(v) => v,
+                Err(_) => {
+                    return;
+                }
+            };
+            let body = match serde_json::to_string(&json_value) {
+                Ok(v) => v,
+                Err(_) => {
+                    return;
+                }
+            };
+            let length = body.len();
             let response = format!(
                 "\
-                HTTP/1.1 200 OK\r\n\
-                Content-Type: text/html; charset=UTF-8\r\n\
-                Content-Length: {value_length}\r\n\
-                Server: Custom Unikum API server\r\n\
-                Access-Control-Allow-Origin: *\r\n\
-                \r\n
-                {result}
-                "
+HTTP/1.1 200 OK\r\n\
+Content-Type: application/json\r\n\
+Content-Length: {length}\r\n\
+Server: Custom Unikum API server\r\n\
+Access-Control-Allow-Origin: *\r\n\
+\r\n\
+{body}"
             );
+            let json: serde_json::Value = match serde_json::from_str(&result)
+                .map_err(|e| format!("JSON parse error: {}", e))
+            {
+                Ok(v) => v,
+                Err(_) => {
+                    return;
+                }
+            };
             stream.write_all(response.as_bytes());
         }
     }

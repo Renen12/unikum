@@ -1,4 +1,6 @@
 # This script can be used instead of the rust wrapper, but that is not recommended, as the rust script provides a better user experience.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 $a = $args[0];
 $b = $args[1];
 $c = $args[2];
@@ -9,7 +11,7 @@ $session.Cookies.Add((New-Object System.Net.Cookie("JSESSIONID", $a, "/", "start
 $session.Cookies.Add((New-Object System.Net.Cookie("UNIHZSESSID", $b, "/", "start.unikum.net")))
 $session.Cookies.Add((New-Object System.Net.Cookie("unilocale", "sv", "/", "start.unikum.net")))
 $session.Cookies.Add((New-Object System.Net.Cookie($c, $d, "/", "start.unikum.net")))
-Invoke-WebRequest -UseBasicParsing -Uri "https://start.unikum.net/unikum/blog/getBlog.ajax?pid=$($e)&first=12" `
+Invoke-WebRequest -UseBasicParsing -Uri "https://start.unikum.net/unikum/blog/getBlog.ajax?pid=$($e)" `
     -WebSession $session `
     -UserAgent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:139.0) Gecko/20100101 Firefox/139.0" `
     -Headers @{
