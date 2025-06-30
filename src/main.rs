@@ -19,7 +19,7 @@ pub fn return_server_values(
             "-NoProfile",
             "-Command",
             &format!(
-                "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ./return_json.ps1 '{}' '{}' '{}' '{}' '{}'",
+                "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ./return_json_posts.ps1 '{}' '{}' '{}' '{}' '{}'",
                 jsessionid,
                 unihzsessid,
                 shibsession_name,
@@ -32,7 +32,19 @@ pub fn return_server_values(
     let out_readable = String::from_utf8_lossy(&out.stdout).to_string();
     out_readable
 }
-
+pub fn return_server_values_messages(bearer: &String) -> String {
+    print!("{bearer}");
+    let cmd = &fs::read_to_string("c.txt")
+        .unwrap()
+        .replace("_REPLACE", &bearer);
+    let out = Command::new("sh")
+        .args(["-c", cmd])
+        .output()
+        .map_err(|e| println!("Cannot run cURL: {}", e))
+        .unwrap();
+    let string = String::from_utf8_lossy(&out.stdout).to_string();
+    string
+}
 use crate::server::server;
 static HELP_MESSAGE: &'static str = "
 --help — display this message\n 
@@ -57,7 +69,7 @@ fn main() {
     let mut shibsession_name = String::new();
     let mut shibsession_value = String::new();
     let mut pid = String::new();
-    let pwsh_contents = fs::read_to_string("return_json.ps1").unwrap();
+    let pwsh_contents = fs::read_to_string("return_json_posts.ps1").unwrap();
     for arg in args {
         let split_equals: Vec<&str> = arg.split("=").collect();
         if arg == "--dry" {
