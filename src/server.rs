@@ -58,8 +58,7 @@ fn handle_connection(mut stream: std::net::TcpStream) {
     let mut shibn = String::new();
     let mut shibv = String::new();
     let mut return_messages = false;
-    let mut bearer = String::new();
-    for pair in pairs {
+    for pair in &pairs {
         let split: Vec<&str> = pair.split("=").collect();
         let key = &**(match split.get(0) {
             Some(v) => v,
@@ -88,7 +87,6 @@ fn handle_connection(mut stream: std::net::TcpStream) {
                     return_messages = false
                 }
             }
-            "bearer" => bearer = value.to_owned(),
             _ => eprintln!("Unrecognised key and value: {}", pair),
         }
         if !jsess.is_empty()
@@ -114,6 +112,7 @@ fn handle_connection(mut stream: std::net::TcpStream) {
                     return;
                 }
             };
+
             let length = body.len();
             let response = format!(
                 "\
@@ -137,6 +136,27 @@ Access-Control-Allow-Origin: *\r\n\
             return;
         } else if return_messages {
             println!("Returning messages");
+            let mut bearer = String::from("Not set");
+            for pair in &pairs {
+                let split: Vec<&str> = pair.split("=").collect();
+                let key = &**(match split.get(0) {
+                    Some(v) => v,
+                    None => {
+                        eprintln!("No key");
+                        return;
+                    }
+                });
+                let value = &**(match split.get(1) {
+                    Some(v) => v,
+                    None => {
+                        eprintln!("No value: {:?}", split);
+                        return;
+                    }
+                });
+                if key == "bearer" || key.contains("bearer") {
+                    bearer = value.replace("%20", " ");
+                }
+            }
             let mut result = return_server_values_messages(&bearer);
             result = result.replace("\n", "");
             let json_value: serde_json::Value = match serde_json::from_str(&result) {
@@ -162,7 +182,7 @@ Access-Control-Allow-Origin: *\r\n\
 \r\n\
 {body}"
             );
-            let _ = stream.write_all(response.as_bytes());
+            stream.write_all(response.as_bytes()).unwrap();
             return;
         }
     }

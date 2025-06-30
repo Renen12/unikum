@@ -32,11 +32,11 @@ pub fn return_server_values(
     let out_readable = String::from_utf8_lossy(&out.stdout).to_string();
     out_readable
 }
+#[allow(unused)]
 pub fn return_server_values_messages(bearer: &String) -> String {
-    print!("{bearer}");
-    let cmd = &fs::read_to_string("c.txt")
-        .unwrap()
-        .replace("_REPLACE", &bearer);
+    let mut cmd = &fs::read_to_string("c.txt").unwrap();
+    let binding = cmd.replace("_REPLACE", &bearer);
+    cmd = &binding;
     let out = Command::new("sh")
         .args(["-c", cmd])
         .output()
