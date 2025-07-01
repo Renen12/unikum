@@ -33,9 +33,11 @@ pub fn return_server_values(
     out_readable
 }
 #[allow(unused)]
-pub fn return_server_values_messages(bearer: &String) -> String {
-    let mut cmd = &fs::read_to_string("c.txt").unwrap();
+pub fn return_server_values_messages(bearer: &String, pid: &String) -> String {
+    let mut cmd = &fs::read_to_string("curl_messages.txt").unwrap();
     let binding = cmd.replace("_REPLACE", &bearer);
+    cmd = &binding;
+    let binding = cmd.replace("_PID", pid);
     cmd = &binding;
     let out = Command::new("sh")
         .args(["-c", cmd])

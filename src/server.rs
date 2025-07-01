@@ -87,7 +87,7 @@ fn handle_connection(mut stream: std::net::TcpStream) {
                     return_messages = false
                 }
             }
-            _ => eprintln!("Unrecognised key and value: {}", pair),
+            _ => {}
         }
         if !jsess.is_empty()
             && !uni.is_empty()
@@ -137,6 +137,7 @@ Access-Control-Allow-Origin: *\r\n\
         } else if return_messages {
             println!("Returning messages");
             let mut bearer = String::from("Not set");
+            let mut userpid = String::from("Not set");
             for pair in &pairs {
                 let split: Vec<&str> = pair.split("=").collect();
                 let key = &**(match split.get(0) {
@@ -154,10 +155,15 @@ Access-Control-Allow-Origin: *\r\n\
                     }
                 });
                 if key == "bearer" || key.contains("bearer") {
+                    println!("Setting bearer");
                     bearer = value.replace("%20", " ");
                 }
+                if key == "userpid" || key.contains("userpid") {
+                    println!("Setting userpid");
+                    userpid = value.replace("%20", " ");
+                }
             }
-            let mut result = return_server_values_messages(&bearer);
+            let mut result = return_server_values_messages(&bearer, &userpid);
             result = result.replace("\n", "");
             let json_value: serde_json::Value = match serde_json::from_str(&result) {
                 Ok(v) => v,
@@ -182,6 +188,7 @@ Access-Control-Allow-Origin: *\r\n\
 \r\n\
 {body}"
             );
+            println!("{body}");
             stream.write_all(response.as_bytes()).unwrap();
             return;
         }
